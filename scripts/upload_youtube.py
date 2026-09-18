@@ -14,9 +14,9 @@ from googleapiclient.http import MediaFileUpload
 
 WORK_DIR = Path("output")
 
-CLIENT_ID = os.environ["YT_CLIENT_ID"]
-CLIENT_SECRET = os.environ["YT_CLIENT_SECRET"]
-REFRESH_TOKEN = os.environ["YT_REFRESH_TOKEN"]
+CLIENT_ID = os.environ["YOUTUBE_CLIENT_ID"]
+CLIENT_SECRET = os.environ["YOUTUBE_CLIENT_SECRET"]
+REFRESH_TOKEN = os.environ["YOUTUBE_REFRESH_TOKEN"]
 
 
 def get_youtube_client():
