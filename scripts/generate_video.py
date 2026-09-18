@@ -30,10 +30,15 @@ def ask_gemini(prompt: str) -> str:
         f"gemini-flash-latest:generateContent?key={GEMINI_API_KEY}"
     )
     body = {"contents": [{"parts": [{"text": prompt}]}]}
-    resp = requests.post(url, json=body, timeout=60)
-    resp.raise_for_status()
-    data = resp.json()
-    return data["candidates"][0]["content"]["parts"][0]["text"].strip()
+    import time
+    for attempt in range(5):
+        resp = requests.post(url, json=body, timeout=60)
+        if resp.status_code == 503 and attempt < 4:
+            time.sleep(15 * (attempt + 1))
+            continue
+        resp.raise_for_status()
+        data = resp.json()
+        return data["candidates"][0]["content"]["parts"][0]["text"].strip()
 
 
 def write_script() -> dict:
