@@ -76,8 +76,15 @@ def refresh_tiktok() -> None:
 
 
 def main() -> None:
-    refresh_instagram()
-    refresh_tiktok()
+    try:
+        refresh_instagram()
+    except Exception as e:
+        print(f"Instagram refresh skipped: {e}")
+
+    try:
+        refresh_tiktok()
+    except Exception as e:
+        print(f"TikTok refresh skipped: {e}")
 
 
 if __name__ == "__main__":
