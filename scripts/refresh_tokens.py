@@ -80,6 +80,7 @@ def main() -> None:
         refresh_instagram()
     except Exception as e:
         print(f"Instagram refresh skipped: {e}")
+        pass_to_later_steps("IG_ACCESS_TOKEN", os.environ["IG_ACCESS_TOKEN"])
 
     try:
         refresh_tiktok()
