@@ -1,0 +1,80 @@
+name: post-videos
+
+on:
+  schedule:
+    # times are UTC. This runs at 13:00 and 23:00 UTC every day (pick your own times)
+    - cron: "0 13 * * *"
+    - cron: "0 23 * * *"
+  workflow_dispatch: {}   # lets you click "Run workflow" on GitHub to test it manually
+
+permissions:
+  contents: write   # so the job can commit the log file and use gh release
+
+jobs:
+  make-and-post:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Check out the repo
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install everything the scripts need
+        run: |
+          sudo apt-get update -y
+          sudo apt-get install -y ffmpeg
+          pip install --upgrade pip
+          pip install requests edge-tts google-api-python-client google-auth
+
+      - name: Refresh Instagram + TikTok tokens before they expire
+        env:
+          IG_ACCESS_TOKEN: ${{ secrets.IG_ACCESS_TOKEN }}
+          TIKTOK_CLIENT_KEY: ${{ secrets.TIKTOK_CLIENT_KEY }}
+          TIKTOK_CLIENT_SECRET: ${{ secrets.TIKTOK_CLIENT_SECRET }}
+          TIKTOK_REFRESH_TOKEN: ${{ secrets.TIKTOK_REFRESH_TOKEN }}
+          GH_TOKEN: ${{ secrets.GH_PAT }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+        run: python scripts/refresh_tokens.py
+
+      - name: Generate today's video
+        env:
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          PEXELS_API_KEY: ${{ secrets.PEXELS_API_KEY }}
+          VIDEO_NICHE: "surprising science facts"
+        run: python scripts/generate_video.py
+
+      - name: Upload to YouTube
+        env:
+          YT_CLIENT_ID: ${{ secrets.YT_CLIENT_ID }}
+          YT_CLIENT_SECRET: ${{ secrets.YT_CLIENT_SECRET }}
+          YT_REFRESH_TOKEN: ${{ secrets.YT_REFRESH_TOKEN }}
+        run: python scripts/upload_youtube.py
+
+      - name: Upload to Instagram
+        # NOTE: no IG_ACCESS_TOKEN here on purpose - the refresh step above
+        # already exported the just-refreshed token for the rest of this run.
+        # Re-adding it from secrets here would undo the refresh and use
+        # yesterday's token instead.
+        env:
+          IG_USER_ID: ${{ secrets.IG_USER_ID }}
+          GH_TOKEN: ${{ secrets.GH_PAT }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+        run: python scripts/upload_instagram.py
+
+      - name: Upload to TikTok
+        # same reasoning: TIKTOK_ACCESS_TOKEN already came from the refresh step
+        run: python scripts/upload_tiktok.py
+
+      - name: Write today's run into the log and commit it
+        run: |
+          mkdir -p logs
+          echo "- $(date -u +'%Y-%m-%d %H:%M UTC'): posted a video" >> logs/post-log.md
+          git config user.name "posting-bot"
+          git config user.email "actions@users.noreply.github.com"
+          git add logs/post-log.md
+          git commit -m "log: posted video on $(date -u +'%Y-%m-%d %H:%M UTC')" || echo "nothing to commit"
+          git push
