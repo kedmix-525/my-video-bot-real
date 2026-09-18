@@ -27,7 +27,7 @@ def ask_gemini(prompt: str) -> str:
     """Send one prompt to Gemini's free API and return the plain text reply."""
     url = (
         "https://generativelanguage.googleapis.com/v1beta/models/"
-        f"gemini-2.0-flash:generateContent?key={GEMINI_API_KEY}"
+        f"gemini-flash-latest:generateContent?key={GEMINI_API_KEY}"
     )
     body = {"contents": [{"parts": [{"text": prompt}]}]}
     resp = requests.post(url, json=body, timeout=60)
