@@ -32,7 +32,7 @@ def ask_gemini(prompt: str) -> str:
     body = {"contents": [{"parts": [{"text": prompt}]}]}
     import time
     for attempt in range(5):
-        resp = requests.post(url, json=body, timeout=180)
+        resp = requests.post(url, json=body, timeout=1800)
         if resp.status_code == 503 and attempt < 4:
             time.sleep(15 * (attempt + 1))
             continue
