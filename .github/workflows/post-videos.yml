@@ -44,7 +44,7 @@ jobs:
         env:
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
           PEXELS_API_KEY: ${{ secrets.PEXELS_API_KEY }}
-          VIDEO_NICHE: "surprising science facts"
+          VIDEO_NICHE: "endurance sports, ultra running, and mountaineering"
         run: python scripts/generate_video.py
 
       - name: Upload to YouTube
