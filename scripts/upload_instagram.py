@@ -45,6 +45,7 @@ def create_media_container(video_url: str, caption: str) -> str:
         },
         timeout=60,
     )
+    print(f"Instagram error response: {resp.text}")
     resp.raise_for_status()
     return resp.json()["id"]
 
